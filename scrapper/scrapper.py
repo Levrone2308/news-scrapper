@@ -9,19 +9,16 @@ db = client["news"]
 collection = db["headlines"]
 
 # Function to scrape BBC News
-def scrape_bbc():
-    url = "https://www.bbc.com/news"
+def scrape_inshorts():
+    url = "https://inshorts.com/en/read"
     headers = {"User-Agent": "Mozilla/5.0"}
-    response = requests.get(url, headers=headers)
-    print(f"Status Code: {response.status_code}")
-    
-    # Dump first 500 characters of the response
-    print(response.text[:500])
+    res = requests.get(url, headers=headers)
+    soup = BeautifulSoup(res.content, "html.parser")
 
-    soup = BeautifulSoup(response.content, "html.parser")
-    headline_tags = soup.select("h3.gs-c-promo-heading__title")
+    headline_tags = soup.select("div.news-card-title span")
     headlines = [tag.get_text(strip=True) for tag in headline_tags if tag.get_text(strip=True)]
     return headlines
+
 
 
 
@@ -32,7 +29,7 @@ def save_to_db(data):
 
 # Main execution
 if __name__ == "__main__":
-    headlines = scrape_bbc()
+    headlines = scrape_inshorts()
     print(f"Scraped {len(headlines)} headlines")
     print(headlines)
     if headlines:
