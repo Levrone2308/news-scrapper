@@ -15,12 +15,13 @@ def scrape_bbc():
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.content, "html.parser")
 
-    # Target actual BBC headline classes
-    headline_tags = soup.select("a.gs-c-promo-heading__title")
+    # Target <h3> headlines with known class
+    headline_tags = soup.select("h3.gs-c-promo-heading__title")
 
     # Extract and clean headline text
     headlines = [tag.get_text(strip=True) for tag in headline_tags if tag.get_text(strip=True)]
     return headlines
+
 
 # Save headlines to MongoDB
 def save_to_db(data):
