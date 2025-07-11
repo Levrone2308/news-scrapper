@@ -3,22 +3,37 @@ from bs4 import BeautifulSoup
 import json
 from pymongo import MongoClient
 
+# Connect to MongoDB
 client = MongoClient("mongodb://mongo:27017/")
 db = client["news"]
 collection = db["headlines"]
 
+# Function to scrape BBC News
 def scrape_bbc():
     url = "https://www.bbc.com/news"
-    res = requests.get(url)
-    soup = BeautifulSoup(res.content, "html.parser")
-    headlines = [item.get_text() for item in soup.select("h3")]
+    headers = {"User-Agent": "Mozilla/5.0"}
+    response = requests.get(url, headers=headers)
+    soup = BeautifulSoup(response.content, "html.parser")
+
+    # Target actual BBC headline classes
+    headline_tags = soup.select("a.gs-c-promo-heading__title")
+
+    # Extract and clean headline text
+    headlines = [tag.get_text(strip=True) for tag in headline_tags if tag.get_text(strip=True)]
     return headlines
 
+# Save headlines to MongoDB
 def save_to_db(data):
     collection.delete_many({})
     collection.insert_many([{"title": headline} for headline in data])
 
+# Main execution
 if __name__ == "__main__":
     headlines = scrape_bbc()
-    save_to_db(headlines)
-    print("Scraped and saved.")
+    print(f"Scraped {len(headlines)} headlines")
+    print(headlines)
+    if headlines:
+        save_to_db(headlines)
+        print("Saved to DB.")
+    else:
+        print("No headlines found.")
